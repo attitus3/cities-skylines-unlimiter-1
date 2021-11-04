@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading;
 using ColossalFramework.Math;
 using ColossalFramework.UI;
+using EManagersLib.API;
 using EightyOne.Areas;
 using EightyOne.RedirectionFramework.Attributes;
 using UnityEngine;
@@ -1584,35 +1585,27 @@ namespace EightyOne.ResourceManagers
             int num3 = Mathf.Min((int)(((double)cellX - HALFGRID + 1.0) * 19.2f / 64.0 + 135.0), 269);
             int num4 = Mathf.Min((int)(((double)cellZ - HALFGRID + 1.0) * 19.2f / 64.0 + 135.0), 269);
             //end mod
-            Array16<PropInstance> props = Singleton<PropManager>.instance.m_props;
-            ushort[] propGrid = Singleton<PropManager>.instance.m_propGrid;
-            for (int index1 = num2; index1 <= num4; ++index1)
+            EPropInstance[] props = EPropManager.m_props.m_buffer;
+            uint[] propGrid = EPropManager.m_propGrid;
+            for (int i = num2; i <= num4; i++)
             {
-                for (int index2 = num1; index2 <= num3; ++index2)
+                for (int j = num1; j <= num3; j++)
                 {
-                    ushort nextGridProp = propGrid[index1 * 270 + index2];
-                    int num5 = 0;
-                    while ((int)nextGridProp != 0)
+                    uint propID = propGrid[i * 270 + j];
+                    while (propID != 0)
                     {
-                        if (!props.m_buffer[(int)nextGridProp].Blocked)
+                        if ((props[propID].m_flags & EPropInstance.BLOCKEDFLAG) == 0)
                         {
-                            Vector3 position = props.m_buffer[(int)nextGridProp].Position;
-                            //begin mod
+                            Vector3 position = props[propID].Position;
                             int num6 = Mathf.Clamp((int)((double)position.x / 19.2f + HALFGRID), 0, GRID - 1);
                             int num7 = Mathf.Clamp((int)((double)position.z / 19.2f + HALFGRID), 0, GRID - 1);
-                            //end mod
                             if (num6 == cellX && num7 == cellZ)
                             {
-                                --this.m_parks.m_buffer[(int)src].m_propCount;
-                                ++this.m_parks.m_buffer[(int)dest].m_propCount;
+                                 --this.m_parks.m_buffer[(int)src].m_propCount;
+                                 ++this.m_parks.m_buffer[(int)dest].m_propCount;
                             }
                         }
-                        nextGridProp = props.m_buffer[(int)nextGridProp].m_nextGridProp;
-                        if (++num5 >= 65536)
-                        {
-                            CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
-                            break;
-                        }
+                        propID = props[propID].m_nextGridProp;
                     }
                 }
             }
